@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+.DS_Store
+blockchain/out/
+blockchain/cache/
+shared/

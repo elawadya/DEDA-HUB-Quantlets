@@ -1,0 +1,8 @@
+FROM ghcr.io/foundry-rs/foundry:latest
+
+WORKDIR /app
+COPY . .
+
+RUN chmod +x /app/deploy.sh
+
+CMD ["/app/deploy.sh"]

@@ -1,0 +1,121 @@
+version: "3.9"
+
+# x402 Demo — Seven-Service Local Stack
+# ──────────────────────────────────────────────────────────────────────────────
+# Service           Port    Role
+# blockchain        8545    Anvil EVM node — chain-id 8453, 2-second blocks
+# blockchain-init   —       Deploys MockUSDC (EIP-3009), writes address to /shared
+# facilitator       8090    Verifies EIP-3009 sigs, submits on-chain settlement
+# server            8080    FastAPI — three paywalled endpoints at $0.001–$0.01
+# client            —       Demo buyer: signs and pays autonomously (profile: demo)
+# dashboard         8501    Streamlit live dashboard
+# ──────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── 1. Local blockchain ─────────────────────────────────────────────────────
+  blockchain:
+    build:
+      context: ./blockchain
+      dockerfile: Dockerfile
+    ports:
+      - "8545:8545"
+    healthcheck:
+      test: ["CMD", "cast", "chain-id", "--rpc-url", "http://localhost:8545"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+    volumes:
+      - shared:/shared
+
+  # ── 2. Contract deployer (runs once, then exits) ─────────────────────────────
+  blockchain-init:
+    build:
+      context: ./blockchain
+      dockerfile: Dockerfile.init
+    environment:
+      RPC_URL: http://blockchain:8545
+    depends_on:
+      blockchain:
+        condition: service_healthy
+    volumes:
+      - shared:/shared
+    restart: "no"
+
+  # ── 3. Facilitator ──────────────────────────────────────────────────────────
+  facilitator:
+    build: ./facilitator
+    ports:
+      - "8090:8090"
+    environment:
+      RPC_URL: http://blockchain:8545
+    depends_on:
+      blockchain:
+        condition: service_healthy
+    volumes:
+      - shared:/shared
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8090/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  # ── 4. Resource server ──────────────────────────────────────────────────────
+  server:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.server
+    ports:
+      - "8080:8080"
+    environment:
+      FACILITATOR_URL: http://facilitator:8090
+      SERVER_WALLET:   "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+      CHAIN_ID:        "8453"
+    depends_on:
+      facilitator:
+        condition: service_healthy
+    volumes:
+      - shared:/shared
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8080/')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  # ── 5. Demo client (run manually: docker compose run client) ────────────────
+  client:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.client
+    environment:
+      SERVER_URL:          http://server:8080
+      BUYER_PRIVATE_KEY:   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+    depends_on:
+      server:
+        condition: service_healthy
+    volumes:
+      - shared:/shared
+    profiles:
+      - demo
+
+  # ── 6. Streamlit dashboard ──────────────────────────────────────────────────
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      RPC_URL:         http://blockchain:8545
+      FACILITATOR_URL: http://facilitator:8090
+      SERVER_URL:      http://server:8080
+    depends_on:
+      - blockchain
+    volumes:
+      - shared:/shared
+
+volumes:
+  shared:

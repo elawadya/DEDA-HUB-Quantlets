@@ -13,6 +13,11 @@ import warnings
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+_MPLCONFIGDIR = Path(__file__).resolve().parent / "tmp" / "matplotlib"
+_MPLCONFIGDIR.mkdir(parents=True, exist_ok=True)
+os.environ.setdefault("MPLBACKEND", "Agg")
+os.environ.setdefault("MPLCONFIGDIR", str(_MPLCONFIGDIR))
+
 import numpy as np
 import pandas as pd
 import matplotlib as mpl
@@ -2051,6 +2056,7 @@ DEFAULT_FILL = "#E15759"      # same red as ES — semantic: "risk"
 NONDEFAULT_FILL = "#E8E8E8"   # very light grey
 
 GRID_COLOR = "#D0D0D0"
+TEXT_DARK = "#222222"
 TEXT_MUTED = "#555555"
 REFERENCE_LINE = "#888888"
 
@@ -2429,6 +2435,7 @@ _FIG3_MODEL_SPECS: List[tuple] = [
 
 def _plot_calibration_panel(
     ax,
+    metric_ax,
     base: pd.DataFrame,
     ycol: str,
     mcols: Dict[str, Optional[str]],
@@ -2492,21 +2499,25 @@ def _plot_calibration_panel(
     out_lines.append(f"n = {n_common:,}")
     for dn in sorted({nrow for *_, nrow in metric_rows if nrow != n_common}):
         out_lines.append(f"* n = {dn:,}")
-    ax.text(0.03, 0.97, "\n".join(out_lines),
-            transform=ax.transAxes, ha="left", va="top",
-            family="monospace", fontsize=9.8,
-            bbox=dict(boxstyle="round,pad=0.55",
-                      facecolor="none", edgecolor="#777",
-                      linewidth=0.9))
+    metric_ax.axis("off")
+    metric_ax.text(0.02, 0.98, "\n".join(out_lines),
+                   transform=metric_ax.transAxes, ha="left", va="top",
+                   family="monospace", fontsize=9.8,
+                   bbox=dict(boxstyle="round,pad=0.55",
+                             facecolor="none", edgecolor="#777",
+                             linewidth=0.9))
+    handles, labels = ax.get_legend_handles_labels()
+    metric_ax.legend(handles, labels, loc="lower left",
+                     bbox_to_anchor=(0.02, 0.02),
+                     fontsize=9.5, frameon=True, framealpha=0.92,
+                     fancybox=False, edgecolor="#999",
+                     borderaxespad=0.0)
 
     ax.set_xlim(-0.02, 1.02)
     ax.set_ylim(-0.02, 1.02)
     ax.set_xlabel("Mean predicted PD")
     ax.set_ylabel("Observed default rate")
     ax.set_title(hname, pad=10)
-    ax.legend(loc="lower right", fontsize=9.5,
-              frameon=True, framealpha=0.92,
-              fancybox=False, edgecolor="#999")
     return rows
 
 
@@ -2560,16 +2571,19 @@ def plot_pod_calibration(preds: pd.DataFrame) -> pd.DataFrame:
     ]
 
     for hname, ycol, mcols, stem in horizons:
-        fig, ax = plt.subplots(figsize=(7.2, 5.8))
-        all_rows.extend(_plot_calibration_panel(ax, base, ycol, mcols, hname,
-                                                FRONTIER))
+        fig, (ax, metric_ax) = plt.subplots(
+            1, 2, figsize=(9.8, 5.8),
+            gridspec_kw={"width_ratios": [5.0, 1.65], "wspace": 0.08},
+        )
+        all_rows.extend(_plot_calibration_panel(ax, metric_ax, base, ycol,
+                                                mcols, hname, FRONTIER))
         fig.suptitle(
             f"Calibration by model: {hname}",
-            fontsize=13.5, fontweight="bold", y=1.02,
+            fontsize=13.5, fontweight="bold", y=1.01,
         )
         fig.text(
-            0.5, -0.03,
-            "Full-data models use common rows; TabPFN-3 uses its available "
+            0.5, -0.02,
+            "Common rows for full-data models; TabPFN-3 uses available "
             "prediction rows.",
             ha="center", fontsize=10.5, style="italic", color=TEXT_MUTED,
         )

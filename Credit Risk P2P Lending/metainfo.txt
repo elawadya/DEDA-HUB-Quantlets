@@ -14,7 +14,7 @@ Email: "jinzhao.fu@student.hu-berlin.de"
 Created_On: 2026-06-22
 Code_Files: code/bondora_credit_risk_analysis.py, code/conformal_experiments.py, code/run_tabpfn_remote.py
 
-Data_Files: data/LoanData.csv
+Data_Files: LoanData.csv
 Data_Source_URL: https://www.kaggle.com/datasets/marcobeyer/bondora-p2p-loans/data
 
 Output_Files: data/closed_loans.csv, data/loans_clean.csv, data/step5_predictions.csv, data/conformal_master.csv, figures/country_default_rates.png, figures/default_label_sensitivity.png, figures/pod_calibration_1year.png, figures/pod_calibration_lifetime.png, figures/brier_score_decomposition.png, figures/entry_vintage_default_rates.png, figures/phase_a_summary.csv, figures/split_conformal_coverage_width.png, figures/group_conditional_coverage.png, figures/distribution_shift_diagnostic.png, figures/online_adaptation_coverage.png, figures/label_robustness_coverage.png, figures/conformal_selection_fdr.png, figures/tabpfn_conformal_coverage.png

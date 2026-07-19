@@ -26,7 +26,7 @@ Code_Files: >
   bitcoin_prediction.ipynb
 
 Data_Files: >
-  btc_raw.csv, feargreed_raw.csv, bitcoin_sentiments_21_24.csv
+  btc_raw.csv, feargreed_raw.csv, bitcoin_sentiments_21_24.csv, vader_daily.csv
 
 Output_Files: >
   model_results.csv, model_accuracy.png, roc_curves.png,

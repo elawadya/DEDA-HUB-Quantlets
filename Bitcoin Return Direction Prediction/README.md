@@ -23,7 +23,7 @@ Institution: Humboldt-Universität zu Berlin
 Created_On: 2026-07-19
 
 Code_Files: >
-  bitcoin_prediction.ipynb
+  Bitcoin_return_direction_prediction.ipynb
 
 Data_Files: >
   btc_raw.csv, feargreed_raw.csv, bitcoin_sentiments_21_24.csv, vader_daily.csv

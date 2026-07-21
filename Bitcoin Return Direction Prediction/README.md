@@ -2,7 +2,7 @@ Name of Quantlet: Bitcoin Return Direction Prediction
 
 Description: BTC-USD daily return direction predicts (Up/Down) using Random Forest, XGBoost, LightGBM, Voting Ensemble, and LSTM with Fear & Greed and VADER sentiment features. Includes McNemar test and trading strategy evaluation with transaction costs.
 
-Keywords: bitcoin, return direction prediction, random forest, xgboost, lightgbm, lstm, voting ensemble, fear and greed, vader sentiment, market regime, trading strategy, efficient market hypothesis, 
+Keywords: bitcoin, return direction prediction, random forest, xgboost, lightgbm, lstm, voting ensemble, fear and greed, vader sentiment, market regime, trading strategy, efficient market hypothesis. 
 
 Author: Wolfgang Karl Härdle, Albraa Elawady
 
